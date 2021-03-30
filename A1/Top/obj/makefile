@@ -1,5 +1,5 @@
 src := ../src/main.c
-object := sum.o
+object := main.o
 
 Re: 
 	@gcc -o A1 $(object) -w

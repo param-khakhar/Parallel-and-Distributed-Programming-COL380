@@ -31,6 +31,13 @@ Hint: Use a time function in the program (e.g. omp_get_wtime) to measure the tim
 //#define THREADS 8
 //#define SERIAL_TIME 0.122026
 
+int Ceil(double x){
+   int temp = (int)x;
+   if(x == (double)temp)
+      return temp;
+   return temp+1;
+}
+
 int main(int argc, char* argv[]) 
 { 
    
@@ -183,7 +190,7 @@ int main(int argc, char* argv[])
          for(int i=0;i<curr;i++) {
             a[i] += a[size-i-1];
          }
-         size = ceil((double)size/2);
+         size = Ceil((double)size/2);
       }
       sum = a[0];
    }

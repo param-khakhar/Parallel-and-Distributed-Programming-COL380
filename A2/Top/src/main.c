@@ -6,8 +6,8 @@
 
 /* Functions to be used for computation*/
 
-void serial();
-void parallel_for();
+void serial(double const **A, double **L, double **U, int n);
+void parallel_for(double const **A, double **L, double **U, int n);
 void sections();
 void parallel_for_and_sections();
 void distributed();
@@ -19,6 +19,7 @@ int n;					//?
 double** matrix;		//Working matrix
 
 void crout(double const **A, double **L, double **U, int n) {
+
 	int i, j, k;
 	double sum = 0;
 
@@ -73,12 +74,42 @@ void save(char* out, char* argv [], double** mat, int r, int c){
 	}
 }
 
-void serial(){
-	printf("Not Yet Implemented\n");
+void serial(double const **A, double **L, double **U, int n){
+	crout(A, L, U, n);
 }
 
-void parallel_for(){
-	printf("Not Yet Implemented\n");
+void parallel_for(double const **A, double **L, double **U, int n){
+
+	int i, j, k;
+	double sum = 0;
+
+	for (i = 0; i < n; i++) {
+		U[i][i] = 1;
+	}
+
+	for (j = 0; j < n; j++) {
+		#pragma omp parallel for
+		for (i = j; i < n; i++) {
+			sum = 0;
+			#pragma omp parallel for shared(j) reduction(+ : sum)
+			for (k = 0; k < j; k++) {
+				sum = sum + L[i][k] * U[k][j];	
+			}
+			L[i][j] = A[i][j] - sum;
+		}
+		#pragma omp for nowait
+		for (i = j; i < n; i++) {
+			sum = 0;
+			#pragma omp parallel for shared(j) reduction(+:sum) 
+			for(k = 0; k < j; k++) {
+				sum = sum + L[j][k] * U[k][i];
+			}
+			if (L[j][j] == 0) {				
+				exit(0);
+			}
+			U[j][i] = (A[j][i] - sum) / L[j][j];
+		}
+	}
 }
 
 void sections(){
@@ -104,6 +135,8 @@ int main(int argc, char* argv[]){
 
 	int strategy = atoi(argv[5]);
 
+	omp_set_num_threads(threads);
+
 	// printf("Sanity Check:\n");
 	// printf("Argc: %d\n", argc);
 	// printf("Rows: %d\n",R);
@@ -116,7 +149,7 @@ int main(int argc, char* argv[]){
 	double ** matrix = malloc(sizeof(double*)*R*C);
 	double** L = malloc(sizeof(double*)*R*n);
 	double** U = malloc(sizeof(double*)*n*C);
-	double** D = malloc(sizeof(double*)*n*n);
+	// double** D = malloc(sizeof(double*)*n*n);
 
 	for(int i=0;i<R;i++){
 		L[i] = (double*)calloc(n, sizeof(double));
@@ -124,7 +157,7 @@ int main(int argc, char* argv[]){
 
 	for(int i=0;i<n;i++){
 		U[i] = (double*)calloc(C, sizeof(double));
-		D[i] = (double*)calloc(n, sizeof(double));
+		// D[i] = (double*)calloc(n, sizeof(double));
 	}
 
 	for(int i=0;i<R;i++){
@@ -144,10 +177,10 @@ int main(int argc, char* argv[]){
 			printf("Serial\n");
 			crout((const double**)matrix, L, U, n);
 
-			for(int i=0;i<n;i++){
-				D[i][i] = L[i][i];
-				L[i][i] = 1;
-			}
+			// for(int i=0;i<n;i++){
+			// 	D[i][i] = L[i][i];
+			// 	L[i][i] = 1;
+			// }
 			
 			// for(int i=0;i<R;i++){
 			// 	for(int j=0;j<n;j++){
@@ -173,7 +206,7 @@ int main(int argc, char* argv[]){
 
 		case 1:
 			printf("Parallel-For\n");
-			parallel_for();
+			parallel_for((const double**)matrix, L, U, n);
 		break;
 
 		case 2:
@@ -195,8 +228,6 @@ int main(int argc, char* argv[]){
 	save(outL, argv, L, R, n);
 	char* outU = "../output/output_U_";
 	save(outU, argv, U, n, C);
-	char* outD = "../output/output_D_";
-	save(outD, argv, D, n, n);
 
 	return 0;
 }

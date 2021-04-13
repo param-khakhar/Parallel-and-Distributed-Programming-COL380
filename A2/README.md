@@ -13,7 +13,7 @@
 ## Make Instructions
 
 - In order to **compile** the source file, use make compile.
-- In order to **execute** the executable, use make execute n=N m=M i=../inputs/matrix.txt t=2 s=0, here n = Rows of the input matrix, i = path to the txt file containing the input matrix, t = number of threads, s = strategy #. 
+- In order to **execute** the executable, use make execute n=N i=../inputs/matrix_1.txt t=2 s=0, here n = Rows of the input matrix, i = path to the txt file containing the input matrix, t = number of threads, s = strategy #. 
 
 As of now, you can use make execute n=3 i=../inputs/matrix_1.txt t=2 s=1
 

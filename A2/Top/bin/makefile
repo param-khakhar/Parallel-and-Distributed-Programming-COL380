@@ -5,3 +5,6 @@ Re:
 tests:
 	@for n in $$(seq 1 50); do ./A2 $(n) $(i) $(t) $(s); done
 	@python3 ../src/statistics.py ../util/time_$(s).txt
+
+generate:
+	@./a.out > ../inputs/matrix_4.txt

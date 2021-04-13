@@ -7,3 +7,4 @@ if __name__ == "__main__":
     print("Mean: ",np.mean(array))
     print("Std: ",np.std(array))
     print("Median: ",np.median(array))
+    print("Quartiles: ",np.quantile(array, [0.25, 0.5, 0.75]))

@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1617604391 "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.tex" "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.pdf" "report" 1617604391
+["pdflatex"] 1618323098 "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.tex" "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.pdf" "report" 1618323107
   "/etc/texmf/web2c/texmf.cnf" 1596976538 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.aux" 1617604391 711 db3964166b3844675f0574fec1364914 ""
-  "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.tex" 1617604390 13507 cf19141e294d00c5c9234ee9b642998f ""
+  "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.aux" 1618323100 711 db3964166b3844675f0574fec1364914 ""
+  "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.tex" 1618323104 13508 81afa29d778dfd91493a65a1fc5b596c ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmex10.tfm" 1136768653 992 662f679a0b3d2d53c1b94050fdaa3f50 ""
@@ -72,15 +72,15 @@
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1596976562 125915 807ff72f6023b33a59c427bfd156a3d1 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1596976565 4811737 28fdad20d7cadd6a113bd9d3916b7556 ""
   "floatrow.sty" 1614226644 60042 e72b55ae57fffd14d8552ba0881ff0f4 ""
-  "report.aux" 1617604391 711 db3964166b3844675f0574fec1364914 ""
-  "report.out" 1617604391 0 d41d8cd98f00b204e9800998ecf8427e ""
-  "report.tex" 1617604390 13507 cf19141e294d00c5c9234ee9b642998f ""
+  "report.aux" 1618323100 711 db3964166b3844675f0574fec1364914 ""
+  "report.out" 1618323100 0 d41d8cd98f00b204e9800998ecf8427e ""
+  "report.tex" 1618323104 13508 81afa29d778dfd91493a65a1fc5b596c ""
   (generated)
   "report.pdf"
-  "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.log"
   "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.pdf"
   "/home/parm_khakhar/Documents/Acads/COL380/Assignments/A1/Top/writeup/report.pdf"
-  "report.out"
-  "report.aux"
   "report.log"
+  "report.aux"
   "/home/parm_khakhar/Documents/Acads/COL380/Assignments/A1/Top/writeup/report.log"
+  "/home/parm_khakhar/Documents/Acads/COL380/Parallel-and-Distributed-Programming-COL380/A2/Top/writeup/report.log"
+  "report.out"

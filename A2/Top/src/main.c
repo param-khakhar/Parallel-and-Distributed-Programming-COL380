@@ -99,17 +99,17 @@ void crout2(double **S, double const **A, double **L, double **U, int n) {
 			double sum1 = S[j][i];
 			U[i][j] = (A[j][i] - sum1)/L[j][j];
 		}
-		for(int row1= 0; row1 < n; ++row1){
-			for(int row2 = 0; row2 < n; ++row2){
+		for(int row1= j; row1 < n; ++row1){
+			for(int row2 = j; row2 < n; ++row2){
 				S[row1][row2] += L[row1][j]*U[row2][j];
 			}
 		}
 	}
 
-// 	Mean:  6.2975699800000005
-// Std:  0.497581226479878
-// Median:  6.1632725
-// Quartiles:  [6.0516255  6.1632725  6.31161275]
+// Mean:  3.30750578
+// Std:  0.9560909365193311
+// Median:  2.9524714999999997
+// Quartiles:  [2.737278   2.9524715  3.50968125]
 
 }
 
@@ -155,7 +155,6 @@ void parallel_for(double** S, double const **A, double **L, double **U, int n){
 	// 		L[i][j] = A[i][j] - sum;
 	// 	}
 
-	// 	#pragma omp parallel for
 	// 	for (i = j; i < n; i++) {
 	// 		sum = 0;
 	// 		for(k = 0; k < j; k++) {
@@ -167,6 +166,24 @@ void parallel_for(double** S, double const **A, double **L, double **U, int n){
 	// 		U[j][i] = (A[j][i] - sum) / L[j][j];
 	// 	}
 	// }
+
+// t=2 s=1
+// Mean:  3.91397668
+// Std:  1.7829833162995041
+// Median:  2.7358255
+// Quartiles:  [2.5122305 2.7358255 5.789642 ]
+
+// t=4 s=1
+// Mean:  3.67014406
+// Std:  1.7390508267069298
+// Median:  2.5972635000000004
+// Quartiles:  [2.39861275 2.5972635  5.8257665 ]
+
+// t=8 s=1
+// Mean:  4.23569964
+// Std:  1.3306256776420597
+// Median:  3.8459015
+// Quartiles:  [3.30708   3.8459015 4.7133185
 
 	// int i, j, k;
 	// double sum = 0;
@@ -188,38 +205,36 @@ void parallel_for(double** S, double const **A, double **L, double **U, int n){
 	// 		U[i][j] = (A[j][i] - sum1)/L[j][j];	
 	// 	}
 	// 	#pragma omp parallel for
-	// 	for(int row1= 0; row1 < n; ++row1){
-	// 		for(int row2 = 0; row2 < n; ++row2){
+	// 	for(int row1 = j; row1 < n; ++row1){
+	// 		for(int row2 = j; row2 < n; ++row2){
 	// 			S[row1][row2] += L[row1][j]*U[row2][j];
 	// 		}
 	// 	}
 	// }
 
 // t=2 s=1
-// Mean:  4.19174432
-// Std:  0.662018468307507
-// Median:  4.0943185
-// Quartiles:  [3.76337475 4.0943185  4.33190825]
+// Mean:  2.1635930000000005
+// Std:  0.878741528368109
+// Median:  1.8104714999999998
+// Quartiles:  [1.6903945  1.8104715  2.13561175]
 
 // t=4 s=1
-// Mean:  3.0817451599999997
-// Std:  0.7477344144730631
-// Median:  2.898651
-// Quartiles:  [2.7412885 2.898651  3.1518205]
+// Mean:  1.7625715599999998
+// Std:  0.6409910899966134
+// Median:  1.5783005
+// Quartiles:  [1.40876925 1.5783005  1.8354945 ]
 
-// 8 threads
-// 	Mean:  3.7330928800000005
-// Std:  0.9807395354835989
-// Median:  3.430679
-// Quartiles:  [3.349906   3.430679   3.73360825]
+// t=8 s=1
+// Mean:  2.11953688
+// Std:  0.7999985569323145
+// Median:  1.7527225
+// Quartiles:  [1.60590625 1.7527225  2.35979475]
 
-// 16 Threads
-// Mean:  3.7744499200000003
-// Std:  0.5987152255394493
-// Median:  3.7429959999999998
-// Quartiles:  [3.380117  3.742996  4.0613185]
-
-
+// t=16 s=1
+// Mean:  2.09160894
+// Std:  0.6012864660621727
+// Median:  1.9782885000000001
+// Quartiles:  [1.733857  1.9782885 2.197984 ]
 
 	int i, j, k;
 	double sum = 0;
@@ -243,30 +258,31 @@ void parallel_for(double** S, double const **A, double **L, double **U, int n){
 				U[i][j] = (A[j][i] - sum1)/L[j][j];
 			}
 			#pragma omp for
-			for(int row1= 0; row1 < n; ++row1){
-				for(int row2 = 0; row2 < n; ++row2){
+			for(int row1= j; row1 < n; ++row1){
+				for(int row2 = j; row2 < n; ++row2){
 					S[row1][row2] += L[row1][j]*U[row2][j];
 				}
 			}
 		}
 	}
+
 // t=2 s=1
-// Mean:  4.1586450600000004
-// Std:  0.5188075478612242
-// Median:  4.022812
-// Quartiles:  [3.831518   4.022812   4.36518525]
+// Mean:  2.25618374
+// Std:  0.8671769853903137
+// Median:  1.9319085
+// Quartiles:  [1.78659775 1.9319085  2.33366675]
 
 // t=4 s=1
-// Mean:  3.4565296200000004
-// Std:  0.9625059157183167
-// Median:  3.231115
-// Quartiles:  [2.905497 3.231115 3.587474]
+// Mean:  1.58451446
+// Std:  0.6060173870948328
+// Median:  1.4308325000000002
+// Quartiles:  [1.32300625 1.4308325  1.565541  ]
 
 // t=8 s=1
-// Mean:  3.89679238
-// Std:  0.6694392891157761
-// Median:  3.7067810000000003
-// Quartiles:  [3.4236095 3.706781  4.385932 ]
+// Mean:  2.51647428
+// Std:  1.5373583751563074
+// Median:  1.9072244999999999
+// Quartiles:  [1.4208065 1.9072245 2.8263905]
 
 // t=16 s=1
 // Mean:  3.6091626199999998
@@ -280,111 +296,122 @@ void sections(double** S, double const **A, double **L, double **U, int n){
 
 	int i, j, k;
 	double sum = 0;
-	#pragma omp parallel sections
-	{
-		#pragma omp section
-		{
-			for (i = 0; i < n; i++) {
-				U[i][i] = 1;
-			}
 
-			for(j = 0; j < n; ++j){
+	for (i = 0; i < n; i++) {
+		U[i][i] = 1;
+	}
+
+	for(j = 0; j < n; ++j){
+
+		#pragma omp sections
+		{
+			#pragma omp section
+			{
 				for(i = j; i < n; ++i){
 					double sum = S[i][j];
 					L[i][j] = A[i][j] - sum;
 				}
 			}
-
-			for(i = j; i < n; ++i){
-				double sum1 = S[j][i];
-				U[i][j] = (A[j][i] - sum1)/L[j][j];
+			#pragma omp section
+			{
+				for(i = j; i < n; ++i){
+					double sum1 = S[j][i];
+					U[i][j] = (A[j][i] - sum1)/L[j][j];
+				}
 			}
 		}
-	}
-		for(int row1= 0; row1 < n; ++row1){
-			for(int row2 = 0; row2 < n; ++row2){
+		for(int row1= j; row1 < n; ++row1){
+			for(int row2 = j; row2 < n; ++row2){
 				S[row1][row2] += L[row1][j]*U[row2][j];
 			}
 		}
+	}
+
 // t=2 s=2
-// Mean:  0.9801052156862745
-// Std:  0.4806103530153117
-// Median:  0.846232
-// Quartiles:  [0.808065  0.846232  0.9963385]
+// Mean:  3.0786281600000005
+// Std:  0.7004467155157589
+// Median:  2.862857
+// Quartiles:  [2.82164825 2.862857   2.91581375]
 
 // t=4 s=2
-// Mean:  1.0899570200000002
-// Std:  0.16323668633655733
-// Median:  1.062184
-// Quartiles:  [1.01467025 1.062184   1.10006075]
+// Mean:  2.6894489800000003
+// Std:  0.5254356132374162
+// Median:  2.5689225
+// Quartiles:  [2.52432025 2.5689225  2.5990585 ]
 
 // t=8 s=2
-// Mean:  1.01833792
-// Std:  0.3990826651578262
-// Median:  0.9323505000000001
-// Quartiles:  [0.90091325 0.9323505  0.98323025]
+// Mean:  2.60197444
+// Std:  0.3235448484293428
+// Median:  2.502964
+// Quartiles:  [2.459689   2.502964   2.56798275]
 
-// Mean:  1.0455215999999998
-// Std:  0.4453031272143056
-// Median:  0.9482455
-// Quartiles:  [0.8892845  0.9482455  1.06243975]
+// t=16 s=2
+// Mean:  2.9670340800000004
+// Std:  0.783093270916558
+// Median:  2.6470700000000003
+// Quartiles:  [2.57539775 2.64707    2.91303775]
+
 }
 
 void parallel_for_and_sections(double** S, double const **A, double **L, double **U, int n){
 
 	int i, j, k;
 	double sum = 0;
-	#pragma omp parallel sections
-	{
-		#pragma omp section
+
+	#pragma omp parallel for
+	for (i = 0; i < n; i++) {
+		U[i][i] = 1;
+	}
+
+	for(j = 0; j < n; ++j){
+
+		#pragma omp sections
 		{
-			for (i = 0; i < n; i++) {
-				U[i][i] = 1;
-			}
-		
-			for(j = 0; j < n; ++j){
+			#pragma omp section
+			{
 				for(i = j; i < n; ++i){
 					double sum = S[i][j];
 					L[i][j] = A[i][j] - sum;
 				}
 			}
-		
-			for(i = j; i < n; ++i){
-				double sum1 = S[j][i];
-				U[i][j] = (A[j][i] - sum1)/L[j][j];
+			#pragma omp section
+			{
+				for(i = j; i < n; ++i){
+					double sum1 = S[j][i];
+					U[i][j] = (A[j][i] - sum1)/L[j][j];
+				}
 			}
 		}
-	}
 		#pragma omp parallel for
-		for(int row1= 0; row1 < n; ++row1){
-			for(int row2 = 0; row2 < n; ++row2){
+		for(int row1= j; row1 < n; ++row1){
+			for(int row2 = j; row2 < n; ++row2){
 				S[row1][row2] += L[row1][j]*U[row2][j];
 			}
 		}
+	}
+	
+// t=2 s=3
+// Mean:  2.18310206
+// Std:  0.6817920419380211
+// Median:  2.0206325
+// Quartiles:  [1.8541365  2.0206325  2.16642375]
 
-	// t=2 s=3
-	// Mean:  1.22844352
-	// Std:  0.6086452464517977
-	// Median:  1.0297475
-	// Quartiles:  [0.9110895  1.0297475  1.30143325]
+// t=4 s=3
+// Mean:  1.6981086599999997
+// Std:  0.6347995797715562
+// Median:  1.4714455
+// Quartiles:  [1.4220025  1.4714455  1.68857225]
 
-	// t=4 s=3
-	// Mean:  1.1463481
-	// Std:  0.19602874673876278
-	// Median:  1.0765985
-	// Quartiles:  [1.00363175 1.0765985  1.250061  ]
+// t=8 s=3
+// Mean:  1.90322018
+// Std:  0.8042048925614339
+// Median:  1.66589
+// Quartiles:  [1.49001675 1.66589    1.86378325]
 
-	// t=8 s=3
-	// Mean:  0.9093152000000001
-	// Std:  0.18949808953295547
-	// Median:  0.8536950000000001
-	// Quartiles:  [0.8135435  0.853695   0.89459375]
-
-	// t=16 s=3
-	// Mean:  1.14158366
-	// Std:  1.0566564951923707
-	// Median:  0.8344125
-	// Quartiles:  [0.8047885  0.8344125  1.05973775]
+// t=16 s=3
+// Mean:  2.1602166599999997
+// Std:  0.7432939171614042
+// Median:  1.9509345
 }
 
 void distributed(){
@@ -441,8 +468,8 @@ int main(int argc, char* argv[]){
 		case 0:
 			// printf("Serial\n");
 			timeFile = fopen("../util/time_0.txt", "a");
-			//crout2(S, (const double**)matrix, L, U, n);
-			crout((const double**)matrix, L, U, n);
+			crout2(S, (const double**)matrix, L, U, n);
+			//crout((const double**)matrix, L, U, n);
 			// for(int i=0;i<n;i++){
 			// 	for(int j=0;j<n;j++){
 			// 		printf("%lf ",U[i][j]);
@@ -488,7 +515,7 @@ int main(int argc, char* argv[]){
 	save(outL, argv, L, R, n, false);
 	char* outU = "../output/output_U_";
 	// save(outU, argv, U, n, C, true);
-	save(outU, argv, U, R, n, false);
+	save(outU, argv, U, R, n, true);
 
 	double total = omp_get_wtime() - start;
 	fprintf(timeFile, "%lf\n", total);

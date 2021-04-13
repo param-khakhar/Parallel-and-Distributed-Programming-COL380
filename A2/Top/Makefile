@@ -7,10 +7,12 @@ compile:
 execute:
 	@(cd bin; $(MAKE))
 
+test: 
+	@(cd bin; make -s tests)
+
 clean: 
 	@rm -f obj/main.o
-	@rm -f src/main.c
-	@rm -f bin/primeChecker
+	@rm -f bin/A2
 	
 
 

@@ -302,11 +302,11 @@ void parallel_for(double** S, double const **A, double **L, double **U, int n){
 		U[i][i] = 1;
 	}
 	for(j = 0; j < n; ++j){
+		L[j][j] = A[j][j]-S[j][j];
+		U[j][j] = (A[j][j]-S[j][j])/L[j][j];
+		double val = L[j][j];
 		#pragma omp parallel
 		{	
-			L[j][j] = A[j][j]-S[j][j];
-			U[j][j] = (A[j][j]-S[j][j])/L[j][j];
-			double val = L[j][j];
 			#pragma omp for
 			for(i = j+1; i < n; ++i){
 				L[j][i] = A[i][j] - S[i][j];

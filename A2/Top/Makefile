@@ -7,6 +7,9 @@ compile:
 execute:
 	@(cd bin; $(MAKE))
 
+distributed:
+	@(cd bin; make -s distribute)
+
 test: 
 	@(cd bin; make -s tests)
 

@@ -19,5 +19,7 @@ As of now, you can use make execute n=3 i=../inputs/matrix_1.txt t=2 s=1
 
 - In order to perform a **test** run of 50 iterations, use make test n=3 i=../inputs/matrix_1.txt t=2 s=1. The number of iterations can therefore be changed in the make file in the folder /bin.
 
+- In order to run the distributed version use strategy 4, as of now use, make distributed n=3 i=../inputs/matrix_1.txt t=2 s=1.
+
 
 

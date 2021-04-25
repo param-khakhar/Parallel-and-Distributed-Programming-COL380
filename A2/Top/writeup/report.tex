@@ -28,7 +28,7 @@ The following is a writeup for the Assignment-2, Parallel and Distributed Progra
 
 \section*{Changes to the Base Code}
 
-The code provided in the assignment specification was modified in order to achieve better results after using open mp for parallelism. The two versions are as presented below:
+The code provided in the assignment specification was modified in order to achieve better results after using OpenMP for parallelism. The two versions are as presented below:
 
 \begin{verbatim}
 void crout(double const **A, double **L, double **U, int n) {
@@ -90,11 +90,41 @@ void crout3(double **S, double const **A, double **L, double **U, int n)
 
 \end{verbatim}
 
+
 Following are the salient features for the modified code:
 \begin{itemize}
   \item The indexing in the array is done in consistence with the \textbf{row-major} order in order to have maximum cache hits.
-  \item The overall structure of the code is very simple, thus enabling \textbf{compiler optimizations} as well.
+  \item The overall structure of the code is very simple, thus enabling \textbf{compiler optimizations} such as vectorized operations.
 \end{itemize}
+
+% \subsection*{Strategy-4}
+
+% For strategy 4, the following serial code was parallelized using MPI.
+
+% \begin{verbatim}
+
+%   for (i = 0; i < n-1; i++) {
+%     for (j = d + 1; j < n; j++) {
+%       if (j % threads == my_rank){
+%         double m = matrix[j*n + d]/matrix[d*n + d];
+%           for(k=1; k < n-d; k++)
+%           {
+%             matrix[j*n + d + k] = matrix[j*n + d + k] - m * matrix[d*n + d + k];
+%           }
+%         matrix[j*n + d] = m;
+%       }
+%     }
+%     d += 1;
+%  }
+% \end{verbatim}
+% Following are the salient features for the modified code:
+% \begin{itemize}
+%   \item The write operations to matrices L and U are replaced to that to the original matrix as it would involve lesser transfer of data among the various processes, thereby improving performance as inter-process communication is expensive.
+%   \item The indexing in the array is done in consistence with the \textbf{row-major} order in order to have maximum cache hits.
+%   \item The overall structure of the code is very simple, thus enabling \textbf{compiler optimizations} as well.
+% \end{itemize}
+
+\newpage
 
 \section*{Strategy-1 : Using Parallel For}
 
@@ -109,10 +139,10 @@ Following are the salient features for the modified code:
         %$\alpha$ & $\beta$ & $\gamma$ \\
         \hline  
         1 & 12.498& 1.00& 1.00\\
-        2 & 7.783& 1.60& 0.80\\
+        2 & 6.842& 1.826& 0.913\\
         4 & 4.624 & 2.70 & 0.675\\
         8 & 4.68 & 2.667 & 0.333\\
-        16 & 5.556 & 2.249& 0.141\\
+        16 & 4.92 & 2.54 & 0.159\\
         \hline
       \end{tabular}
     \end{center}
@@ -126,7 +156,8 @@ Following are the salient features for the modified code:
 	#pragma omp parallel for
 	for (i = 0; i < n; i++) {
 		  U[i][i] = 1;
-	}
+  }
+  
 	for(j = 0; j < n; ++j){
       #pragma omp parallel
       {	
@@ -148,18 +179,25 @@ Following are the salient features for the modified code:
 	}
 
 \end{verbatim}
-
-  In this approach we used parallel for all the double nested loops in 
-  the function crout3. The outer loop index (j) is the common variable among all 
-  the nested for loops. However, no two memory locations are accessed more than once,
-  thereby ruling out the possibility of data race. Since, there are no loop carried
-  dependencies as well, we used \#pragma omp for to parallelize them. The new proposed
-  algorithm crout3, requires the nested for loops to be completed in order and therefore
-  we haven't specified the nowait clause in the pragma omp for. Static allocation would be
-  better as the tasks are more or less similar, and using dynamic would also lead to other
-  maintenance overheads.
-
+  \begin{itemize}
+    \item In this approach we used \#pragma omp for all the double nested loops in 
+    the function crout3 as there are no loop carried dependencies.
+    \item The new proposed algorithm crout3, requires the nested for loops to be completed 
+    in order and therefore we haven't specified the nowait clause in the pragma 
+    omp for.
+    \item Static allocation would be better as the tasks are more or less 
+    similar, and using dynamic would also lead to other maintenance overheads.  
+  \end{itemize}
+    
 \subsection*{Correctness:}
+
+  The outer loop index (j) is the common variable among all the nested for 
+  loops. For the first double nested loop with loop variable i, there aren't
+  any loop carried dependencies. However, there are locations which are accessed
+  more than once within the triple nested last for loop. But, the shared locations
+  after every iteration of the outer loop. Using \#pragma omp for for ensures completion of all
+  the threads in the current iteration before proceeding for the next iteration of the outermost
+  loop, thereby mitigating the issue of data race.
 
 \section*{Strategy-2 : Using Sections}
 
@@ -172,9 +210,9 @@ Following are the salient features for the modified code:
         \hline
         1 & 12.498 & 1.00 & 1.00\\  
         2 & 6.665 & 1.875 & 0.938\\
-        4 & 5.610 & 2.228 & 0.557\\
-        8 & 5.986 & 2.088 & 0.261\\
-        16 & 5.847 & 2.09 & 0.131\\
+        4 & 5.094 & 2.453 & 0.613\\
+        8 & 4.939 & 2.53 & 0.316\\
+        16 & 4.675 & 2.673 & 0.167\\
         \hline
       \end{tabular}
     \end{center}
@@ -236,28 +274,36 @@ Following are the salient features for the modified code:
     .
 \end{verbatim}
 
-In this approach, we split the statements of the first nested for loop in crout3, into two different loops which can run concurrently and
-thus enabling us to use the sections clause specified by OpenMP. For the last triple nested for loop, we again forced parallelism by
-splitting the iterations into different mutually exclusive ranges. The implementation uses the fact that the number of threads is hard-coded at
-2, 4, 8, and 16. The ranges and the updates are mutually exclusive and the addresses accessed are different for all the threads, therefore the condition
-of data race doesn't arise and doesn't need to be addressed.
+\begin{itemize}
+  \item In this approach, we split the statements of the first nested for loop in crout3, into two different loops which can run concurrently and
+  thus enabling us to use the sections clause specified by OpenMP.
+  \item For the last triple nested for loop, we again forced parallelism by
+  splitting the iterations into different mutually exclusive and exhaustive ranges. The implementation uses the fact that the number of threads is hard-coded at
+  2, 4, 8, and 16. 
+\end{itemize}
 
 \subsection*{Correctness:}
 
-\section*{Strategy-3 : Using both Parallel For and Sections}
+The shared variable among the inner nested loops is (j), since the loops with variables i, execute concurrently, by individual threads at a time,
+they don't perform write operations to the same address. There are shared memory locations for different iteration of the outer variable (j) of the S array
+but the completion of sections parallel clause in each loop iteration, prevents multiple writes at the same address.
+
+\newpage
+
+\section*{Strategy-3 : Using Parallel For and Sections}
 
 \begin{table}[h!]
     \begin{center}
       %\label{tab:table1}
       \begin{tabular}{|c|c|c|c|} % <-- Alignments: 1st column left, 2nd middle and 3rd right, with vertical lines in between
       \hline
-      \textbf{\# Threads} & \textbf{Median Time in s} & \textbf{Mean Time in s} & \textbf{Std in s}\\
-        %$\alpha$ & $\beta$ & $\gamma$ \\
+      \textbf{\# Threads} & \textbf{Median Time in s} & \textbf{Speedup} & \textbf{Efficiency}\\
         \hline  
-        2 & 20284 & 523s &\\
-        4 & 277 & 5.51s &\\
-        6 & 7 & 1.23s &\\
-        8 & 2 & 38.4s &\\
+        1 & 12.498 & 1.00 \\
+        2 & 6.515 & 1.918 & 0.959\\
+        4 & 5.061 & 2.469 & 0.617\\
+        8 & 4.875 & 2.564 & 0.32\\
+        16 & 4.147 & 3.104 & 0.188\\
         \hline
       \end{tabular}
     \end{center}
@@ -265,7 +311,68 @@ of data race doesn't arise and doesn't need to be addressed.
 
 \subsection*{Description:}
 
+\begin{verbatim}
+  void sections(double** S, double const **A, double **L, double **U, int n, int t){
+    #pragma omp for
+    for (int i = 0; i < n; i++) {
+        U[i][i] = 1;
+    }
+
+	    for(int j = 0; j < n; ++j){
+		      L[j][j] = A[j][j]-S[j][j];
+          double val = L[j][j];
+          
+		      #pragma omp parallel sections
+		      {
+            #pragma omp section
+            {
+                for(int i = j+1; i < n; ++i){
+                    L[j][i] = A[i][j] - S[i][j];
+                }
+            }
+            #pragma omp section
+            {
+                for(int i = j; i < n; ++i){
+                    U[j][i] = (A[j][i] - S[j][i])/val;
+                }
+            }
+		}
+		if(t == 2){
+			  int fir = (j+n)/2;
+			  #pragma omp parallel sections
+			  {
+					  #pragma omp section
+					  {
+      for(int row1= j; row1 < fir; ++row1){
+          for(int row2 = j; row2 < n; ++row2){
+              S[row1][row2] += L[j][row1]*U[j][row2];
+          }
+      }
+					  }
+					#pragma omp section
+					{
+      for(int row1= fir; row1 < n; ++row1){
+          for(int row2 = j; row2 < n; ++row2){
+              S[row1][row2] += L[j][row1]*U[j][row2];
+          }
+      }
+					}
+			}
+		}
+    .
+    .
+    .
+\end{verbatim}
+
+
+In this approach, we simply experimented with the different combinations of the above two approaches
+and thus have implemented the best combination. Strategy 2 gave better results, therefore it was used, however the for loop for initializing the U matrix has been parallelized now using \#pragma omp for.
+
 \subsection*{Correctness:}
+
+Since, the program for strategy is formed by the combination of strategies 1 and 2, the same explanation holds for the correctness and data races for this part.
+
+\newpage
 
 \section*{Strategy-4 : Distributed Version}
 
@@ -274,13 +381,13 @@ of data race doesn't arise and doesn't need to be addressed.
       %\label{tab:table1}
       \begin{tabular}{|c|c|c|c|} % <-- Alignments: 1st column left, 2nd middle and 3rd right, with vertical lines in between
       \hline
-      \textbf{\# Threads} & \textbf{Median Time in s} & \textbf{Mean Time in s} & \textbf{Std in s}\\
+      \textbf{\# Processes} & \textbf{Median Time in s} & \textbf{Speedup} & \textbf{Efficiency}\\
         %$\alpha$ & $\beta$ & $\gamma$ \\
         \hline  
-        2 & 20284 & 523s &\\
-        4 & 277 & 5.51s &\\
-        6 & 7 & 1.23s &\\
-        8 & 2 & 38.4s &\\
+        1 & 11.153 & 1.00 & 1.00\\
+        2 & 18.527 & 0.602 & 0.301\\
+        4 & 31.229  & 0.357 & 0.09\\
+        8 & 53.528 & 0.208 & 0.026\\
         \hline
       \end{tabular}
     \end{center}
@@ -288,227 +395,58 @@ of data race doesn't arise and doesn't need to be addressed.
 
 \subsection*{Description:}
 
+\begin{verbatim}
+	for (i = 0; i < n; i++) {
+		  U[i][i] = 1;
+	}
+
+	for(j = 0; j < n; ++j){
+		  L[j][j] = matrix[j][j]-S[j][j];
+		  U[j][j] = (matrix[j][j]-S[j][j])/L[j][j];
+		  double val = L[j][j];
+		  for(i = j+1; i < n; ++i){
+			    L[j][i] = matrix[i][j] - S[i][j];
+			    U[j][i] = (matrix[j][i] - S[j][i])/val;
+		}
+
+		  for(int row1 = j; row1 < n; ++row1){
+			    if(row1 % threads == my_rank)
+			    {
+				      for(int row2 = j; row2 < n; ++row2){
+					        S[row1][row2] += L[j][row1]*U[j][row2];
+				      }
+			    }
+			    MPI_Bcast(S[row1], n, MPI_DOUBLE, row1 % threads, MPI_COMM_WORLD);
+		  }
+	}
+\end{verbatim}
+
+\begin{itemize}
+  \item The objective while designing the code for this part was to have minimal, simpler code with as less send-receive or broadcast operations, as they are expensive. However, the least number of such operations which need to be performed would at least be $O(n ^ 2)$.
+  Therefore, only the triple nested operations are divided among the processes.
+  \item The modulo operation is used to perform the splitting of tasks, which takes place in constant time.
+\end{itemize}
+
 \subsection*{Correctness:}
 
+The correctness of the program is discussed in the previous 
+strategies, however the only difference in this would be the 
+individual processes writing to the 2D array, S. No two processes 
+write to the same location due to the scheme for the division of 
+work adopted in the program. Therefore, the issue of data race 
+doesn't arise.
 
+\section*{Remarks:}
 
-%   Two different parallelized versions of the summation are implemented. 
-%   \begin{itemize}
-%     \item In the first approach, nested parallelism is used, and a local variable corresponding to each thread stores the total sum for that thread, and finally the local sums from the all the threads are added in the global variable sum.
-%     \item The second approach is an implementation of the tree based approach as discussed in the second lecture. In this approach, pairs of elements are added and the size of the array reduces by half at each stage. The height, of the tree so formed would be \textbf{O(logN)}.
-%   \end{itemize}
-
-% \section*{Task -2 Performance Analysis}
-
-%   \subsection*{2.1 First Approach}
-
-%   The following execution times for the entire programs and the parallelized parts was observed for the first approach on various threads and inputs sizes.
-%   \begin{table}[H]
-%     \begin{tabular}{lllll} \toprule
-%         \textbf{Limit$|$Threads}& \textbf{1} & \textbf{2} & \textbf{4} & \textbf{8}\\\midrule
-%         1e03 & 0.041 & 0.290 & 0.197 & 8.811\\
-%         1e05 & 3.813 & 3.636 & 2.338 & 5.791\\
-%         1e07 & 122.026 & 95.856 & 87.911 & 85.502\\
-%         \bottomrule
-%       \end{tabular}
-%     \caption{The Time Values are in milliseconds}\label{Tab1}
-%   \end{table} 
-
-%   The following \emph{speedup} and \emph{efficiency} values are observed for different number of threads and limits for summation for the first approach. \\
-
-%   \begin{table}[H]
-%     \begin{tabular}{llllll} \toprule
-%         \textbf{Size} &\textbf{p} & \textbf{1} & \textbf{2} & \textbf{4} & \textbf{8}\\\midrule
-%         1e03 & S & 1.0 & 0.1415 & 0.2086 & 0.0047\\
-%              & E & 1.0 & 0.0707 & 0.0521 & 0.0005\\
-%         1e05 & S & 1.0 & 1.0487 & 1.6310 & 0.6584\\
-%              & E & 1.0 & 0.5243 & 0.4078 & 0.0823\\
-%         1e07 & S & 1.0 & 1.273 & 1.3881 & 1.4271 \\
-%              & E & 1.0 & 0.6365 & 0.347 & 0.1789
-%         \\\bottomrule
-%       \end{tabular}
-%     \caption{S = Speedup, E = Efficiency}\label{Tab1}
-%   \end{table} 
-
-%   \subsection*{2.2 Second Approach}
-  
-%     The following execution times for the entire programs and the parallelized parts was observed for the second approach on various threads and inputs sizes.
-%     \begin{table}[H]
-%       \begin{tabular}{lllll} \toprule
-%           \textbf{Limit$|$Threads}& \textbf{1} & \textbf{2} & \textbf{4} & \textbf{8}\\\midrule
-%           1e03 & 0.041 & 0.134 & 0.123 & 0.110\\
-%           1e05 & 3.813 & 4.648 & 3.951 & 2.56\\
-%           1e07 & 122.026 & 125.327 & 123.177 & 112.395\\
-%           \bottomrule
-%         \end{tabular}
-%       \caption{The Time Values are in milliseconds}\label{Tab1}
-%     \end{table} 
-
-%     The following \emph{speedup} and \emph{efficiency} values are observed for different number of threads and limits for summation for the first approach. \\
-
-%     \begin{table}[H]
-%       \begin{tabular}{llllll} \toprule
-%           \textbf{Size} &\textbf{p} & \textbf{1} & \textbf{2} & \textbf{4} & \textbf{8}\\\midrule
-%           1e03 & S & 1.0 & 0.3068 & 0.3324 & 0.3715\\
-%               & E & 1.0 & 0.1534 & 0.0831 & 0.0464\\
-%           1e05 & S & 1.0 & 0.8204 & 0.9652 & 1.4897\\
-%               & E & 1.0 & 0.4102 & 0.2413 & 0.1862\\
-%           1e07 & S & 1.0 & 0.9737 & 0.9907 & 1.0857 \\
-%               & E & 1.0 & 0.4868 & 0.2477 & 0.1357
-%           \\\bottomrule
-%         \end{tabular}
-%       \caption{S = Speedup, E = Efficiency}\label{Tab1}
-%     \end{table} 
-
-%     \section*{Task -3 Remarks}
-
-%     \begin{itemize}
-%       \item From the above observations, we can conclude that \textbf{Amdahl's Law} is approximately followed, as the \textbf{efficiency values} are \textbf{decreasing consistently} for both the approaches, which implies that the added advantage on increasing the threads is decreasing and ultimately the overheads for parallelizing the code would be more as compared to the advantage on the computation time as is the case for 8 threads in the first approach for the input size of 1e03, and 1e05.
-%       \item During the experimentation, significant variations were present in the above data, and the values mentioned above are the ones which were occurring most frequently during multiple executions.
-%       \item The \emph{Speedup} values are increasing mostly along a row as well as along a column.
-%       \item The \emph{Efficiency} values are decreasing mostly along a row but increasing along a column.
-%       \item The \emph{Serial} approach performs reasonably well, which can be attributed to the simplicity of the task as well as caching of the entries by the memory.
-%     \end{itemize}
-
-
-%   \subsection*{Task - 1.a: Batch Gradient Descent}
-%   The theta\_parameters are initialized as all zeros. The learning rate of 0.025 is able to converge after 382 iterations. The final value of the parameters is found to be $\theta_{0}$ = 0.99657 and $\theta_{1}$ = 0.00136. The stopping criteria used is when $|J(\theta\textsuperscript{t+1}) - J(\theta\textsuperscript{t})| \leq 10\textsuperscript{-10}$.
-
-%   \subsection*{Task -1.b: Plotting the Data Points}
-
-%   \includegraphics[width=13cm]{../output/q1/q1b}
-
-%   The graph is plotted on normalized data as the values of the target variables are very close to each other. The acidity values have been normalized.
-
-%   \subsection*{Task - 1.c: Meshgrid animation}
-
-%   The file q1c.mp4 is available in the output directory, which shows the progress. The snapshot is as follows:
-
-%   \includegraphics[width=13cm]{../output/q1/q1c}
-
-%   \subsection*{Task - 1.d: Contour animation}
-
-%   The file q1d.mp4 is available in the output directory, which shows the progress. The snapshot is as follows:
-
-%   \includegraphics[width=13cm]{../output/q1/q1d}
-
-%   \subsection*{Task - 1.e: Contour Animation Comparison}
-
-%   As evident in the video, the marker with learning rate = 0.001 is making very slow progress, whereas the markers with learning rate 0.025 and 0.1 have already converged. The video isn't completely save due to lack of efficient computational resources. \\
-
-%   The following code was referred while plotting the visualization of contours and 3d mesh, https://xavierbourretsicotte.github.io/animation\_ridge.html
-
-%   \section* {Task - 2: Stochastic Gradient Descent}
-
-%   \subsection* {Task - 2.a: Sampling}
-%   Numpy's inbuilt functions were used to sample values from a normal distribution.
-
-%   \subsection*{Task - 2.b: Training}
-%   Given the batch size, the data is shuffled randomly, and then divided into batches of size b. During each iteration, cost is computed for every batch, followed by computation of gradients, and updating the theta parameters. The convergence criteria is when for all the batches, the value of the cost in an iteration, and a consecutive iteration, becomes lesser than a particular threshold which is set as $10\textsuperscript{-8}$.
-
-%   \subsection*{Task - 2.c: Training Statistics}
-%   The following table indicates the statistics while training the model for different batch sizes, each with a threshold equal to $10\textsuperscript{-8}$ and a learning rate of 0.001:
-
-%   \begin{table}[h!]
-%     \begin{center}
-%       %\label{tab:table1}
-%       \begin{tabular}{|c|c|c|c|} % <-- Alignments: 1st column left, 2nd middle and 3rd right, with vertical lines in between
-%       \hline
-%       \textbf{Batch Size} & \textbf{Epochs} & \textbf{Time in s} & \textbf{Final Parameters}\\
-%         %$\alpha$ & $\beta$ & $\gamma$ \\
-%         \hline  
-%         $10\textsuperscript{6}$ & 20284 & 523s & [2.989,1.002,1.999]\\
-%         $10\textsuperscript{4}$ & 277 & 5.51s & [2.997,1.000,2.000]\\
-%         $10\textsuperscript{2}$ & 7 & 1.23s & [3.000,0.9954,2.0013]\\
-%         $1$ & 2 & 38.4s & [3.007,0.9896,1.9933]\\
-%         \hline
-%       \end{tabular}
-%     \end{center}
-%   \end{table}
-
-%   The differences in different batch sizes is clearly visible, in terms of the number of epochs, and the time required in s for convergence. Increasing the batch size, increasing the batch size decreases the time in which the solution converges, upto a certain extent, however for batch size = 1, the time required for convergence, is higher as compared to batch size = 100, and batch size = 10000. \\
-
-%   The final value of the parameters in each and every case is very close to the original parameters, which are [3,1,2]. The following table represents the \textbf{Mean Squared Error} on the Test Set for different batch sizes and the original hypothesis. \\ \\ \\ \\ \\
-
-%   \begin{table}[h!]
-%     \begin{center}
-%       %\label{tab:table1}
-%       \begin{tabular}{|c|c|} % <-- Alignments: 1st column left, 2nd middle and 3rd right, with vertical lines in between
-%       \hline
-%       \textbf{Batch Size} & \textbf{MSE}\\
-%         %$\alpha$ & $\beta$ & $\gamma$ \\
-%         \hline
-%         Original Hypothesis & 0.9826\\  
-%         $10\textsuperscript{6}$ & 0.9837\\
-%         $10\textsuperscript{4}$ & 0.9832\\
-%         $10\textsuperscript{2}$ & 0.9833\\
-%         $1$ & 1.1138\\
-%         \hline
-%       \end{tabular}
-%     \end{center}
-%   \end{table}
-
-%   The error for the original hypothesis is the least among all the different learnt parameters for different batches. however, the difference is less, and thereby implying that the learning algorithm's performance is fairly good in learning the parameters.
-
-%   \subsection*{Task - 2.d}
-
-%     \includegraphics[width=13cm]{../output/q2/q2d}
-
-%   The path taken when the batch size is 1 is very oscillatory. Also, this oscillatory nature of the path decreases as the batch size increases. It makes intuitive sense as increasing the number of examples for calculating the gradient would result in more appropriate direction of the gradient which won't be the case when considering lesser number of samples.
-% \section*{Task - 3: Logistic Regression}
-
-%   The value of optimal parameters obtained using Newton's Method are: $\theta_{0}$ = 0.46722676, $\theta_{1}$ = 2.57071759, $\theta_{2}$ = -2.7955926. The process got completed in 7 steps, and the threshold for convergence is 10\textsuperscript{-6}. The decision boundary corresponding to the parameters is:
-
-%   \includegraphics[width=13cm]{../output/q3/q3b}
-
-% \section*{Task - 4: Gaussian Discriminant Analysis}
-
-%   \subsection*{Task - 4.a : Linear Discriminant Analysis}
-%   The analytically computed values of the parameters are as follows:
-%   \begin{itemize}
-%     \item $\Phi$ = 0.5
-%     \item $\mu_{0}$ = $\begin{bmatrix}
-%                       0.75529433 & -0.68509431
-%                       \end{bmatrix}$
-%     \item $\mu_{1}$ = $\begin{bmatrix}
-%                       -0.75529433 & 0.68509431
-%                       \end{bmatrix}$
-%     \item $\Sigma$ =  $\begin{bmatrix}
-%                       0.42953048 & -0.02247228 \\
-%                       -0.02247228 & 0.53064579
-%                       \end{bmatrix}$
-%   \end{itemize}
-
-%   The training data given along with the linear decision boundary is as follows: \\
-
-%   \includegraphics[width=13cm]{../output/q4/q4c}
-
-%   \subsection*{Task - 4.d : Quadratic Discriminant Analysis}
-
-%   The analytically computed values of the parameters are as follows:
-%   \begin{itemize}
-%     \item $\Phi$ = 0.5
-%     \item $\mu_{0}$ = $\begin{bmatrix}
-%                       0.75529433 & -0.68509431
-%                       \end{bmatrix}$
-%     \item $\mu_{1}$ = $\begin{bmatrix}
-%                       -0.75529433 & 0.68509431
-%                       \end{bmatrix}$
-%     \item $\Sigma_{0}$ =  $\begin{bmatrix}
-%                       0.47747117 & 0.1099206 \\
-%                       0.1099206 & 0.68509431
-%                       \end{bmatrix}$
-%     \item $\Sigma_{1}$ =  $\begin{bmatrix}
-%                         0.38158978 & -0.15486516 \\
-%                         -0.15486516 & 0.64773717
-%                         \end{bmatrix}$
-%     \end{itemize}
-
-%     The decision boundary for both linear and quadratic discriminant analysis is as follows: 
-
-%     \includegraphics[width=13cm]{../output/q4/q4e}
-
-%     The quadratic decision boundary is better as compared to the linear decision boundary, as certain points would have been misclassified by the linear boundary, but they are rightly classified by the quadratic decision boundary.
-
+\begin{itemize}
+  \item For strategies 1, 2, and 3 the performance is better than the sequential case. 
+  For strategy-4, the overhead of performing a broadcast is significantly more as compared
+  to the size of problem (2000 size 2D array) and therefore, the value of speedup obtained is
+  $< 1$.
+  \item For all the strategies, the efficiency decreases on increasing the number of threads/processes
+  which indeed is theoretically consistent.
+  \item The time mentioned in the table includes the time for reading the input and performing the crout matrix
+  matrix decomposition.
+\end{itemize}
 
 \end{document}

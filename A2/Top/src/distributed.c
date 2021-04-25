@@ -72,11 +72,12 @@ void crout(double const **A, double **L, double **U, int n) {
 	}
 }
 
+
+
 /*Code modified in order to parallelize*/
 void crout2(double **S, double const **A, double **L, double **U, int n) {
 
-	int i, j, k;
-	double sum = 0;
+	int i, j;
 
 	for (i = 0; i < n; i++) {
 		U[i][i] = 1;
@@ -98,6 +99,33 @@ void crout2(double **S, double const **A, double **L, double **U, int n) {
 		}
 	}
 }
+
+void crout3(double **S, double const **A, double **L, double **U, int n)
+{
+	int i, j;
+	for (i = 0; i < n; i++) {
+		U[i][i] = 1;
+	}
+
+		for(j = 0; j < n; ++j){
+		{
+			L[j][j] = A[j][j]-S[j][j];
+			U[j][j] = (A[j][j]-S[j][j])/L[j][j];
+			double val = L[j][j];
+			for(i = j+1; i < n; ++i){
+				L[j][i] = A[i][j] - S[i][j];
+				U[j][i] = (A[j][i] - S[j][i])/val;
+			}
+
+			for(int row1 = j; row1 < n; ++row1){
+				for(int row2 = j; row2 < n; ++row2){
+					S[row1][row2] += L[j][row1]*U[j][row2];
+				}
+			}
+		}
+	}
+}
+
 
 
 void save(char* out, char* argv [], double** mat, int r, int c, bool transpose){
@@ -123,85 +151,98 @@ void serial(double const **A, double **L, double **U, int n){
 
 int main(int argc, char* argv[]){
 
-	// double start = omp_get_wtime();
 	int threads;
-	int strategy;
-	int p, my_rank;
+	int my_rank;
 	int n = 0;
-	const int root_p = 0;
-	// if(my_rank == 0)
-	// {
-		R = atoi(argv[1]);
-		C = R;
-		n = R;
-		
-		FILE* inputFile = fopen(argv[2],"r");
-		FILE* timeFile;
+	R = atoi(argv[1]);
+	C = R;
+	n = R;
+	
+	FILE* inputFile = fopen(argv[2],"r");
+	//FILE* timeFile;
 
-		threads = atoi(argv[3]);
-		strategy = atoi(argv[4]);
+	threads = atoi(argv[3]);
 
-		double* matrix = malloc(sizeof(double)*n*n);
-// 		// double** L = malloc(sizeof(double*)*n*n);
-// 		// double** U = malloc(sizeof(double*)*n*n);
-// 		// double ** S = malloc(sizeof(double *)*n*n);
+	double ** matrix = malloc(sizeof(double*)*n);
+	double** L = malloc(sizeof(double*)*n);
+	double** U = malloc(sizeof(double*)*n);
+	double ** S = malloc(sizeof(double *)*n);
 
-// 		// double** D = malloc(sizeof(double*)*n*n);
 
-// 		// for(int i=0;i<n;i++){
-// 		// 	S[i] = (double*)calloc(n, sizeof(double));
-// 		// }
+	// double* matrix = malloc(sizeof(double)*n*n);
+	// for(int i=0;i<n*n;i++){
+	// 	fscanf(inputFile, "%lf", &matrix[i]);
+	// }
 
-// 		// for(int i=0;i<R;i++){
-// 		// 	L[i] = (double*)calloc(n, sizeof(double));
-// 		// }
+	for(int i=0;i<n;i++){
+		S[i] = (double*)calloc(n, sizeof(double));
+	}
 
-// 		// for(int i=0;i<n;i++){
-// 		// 	U[i] = (double*)calloc(C, sizeof(double));
-// 		// 	// D[i] = (double*)calloc(n, sizeof(double));
-// 		// }
+	for(int i=0;i<R;i++){
+		L[i] = (double*)calloc(n, sizeof(double));
+	}
 
-// 		// for(int i=0;i<R;i++){
-// 		// 	matrix[i] = (double*)calloc(C, sizeof(double));
-// 		// }
+	for(int i=0;i<n;i++){
+		U[i] = (double*)calloc(C, sizeof(double));
+		// D[i] = (double*)calloc(n, sizeof(double));
+	}
 
-		for(int i=0;i<n*n;i++){
-				fscanf(inputFile, "%lf", &matrix[i]);
+	for(int i=0;i<R;i++){
+		matrix[i] = (double*)calloc(C, sizeof(double));
+	}
+
+	for(int i=0;i<R;i++){
+		for(int j=0;j<C;j++){
+			fscanf(inputFile, "%lf", &matrix[i][j]);
+		}
+	}
+	MPI_Init(NULL, NULL);
+	MPI_Comm_size(MPI_COMM_WORLD, &threads);
+	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+   	//double start = MPI_Wtime();	
+
+	// printf("Here: %d\n",my_rank);
+
+   	int i, j;
+
+	for (i = 0; i < n; i++) {
+		U[i][i] = 1;
+	}
+
+	for(j = 0; j < n; ++j){
+		L[j][j] = matrix[j][j]-S[j][j];
+		U[j][j] = (matrix[j][j]-S[j][j])/L[j][j];
+		double val = L[j][j];
+		for(i = j+1; i < n; ++i){
+			L[j][i] = matrix[i][j] - S[i][j];
+			U[j][i] = (matrix[j][i] - S[j][i])/val;
 		}
 
-   MPI_Init(NULL, NULL);
-   MPI_Comm_size(MPI_COMM_WORLD, &threads);
-   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-
-   int i, j, k, d = 0;
-
-   double start = MPI_Wtime();
-
-   for (i = 0; i < n-1; i++) {
-      for (j = d + 1; j < n; j++) {
-        	if (j % threads == my_rank){
-				double m = matrix[j*n + d]/matrix[d*n + d];
-				for(k=1; k < n-d; k++)
-				{
-					matrix[j*n + d + k] = matrix[j*n + d + k] - m * matrix[d*n + d + k];
+		for(int row1 = j; row1 < n; ++row1){
+			if(row1 % threads == my_rank)
+			{
+				for(int row2 = j; row2 < n; ++row2){
+					S[row1][row2] += L[j][row1]*U[j][row2];
 				}
-				matrix[j*n + d] = m;
-        	}
-      	}
-      	for (j = d + 1; j < n; j++) {
-        	MPI_Bcast(&matrix[j*n + d], n - d, MPI_DOUBLE, j % threads, MPI_COMM_WORLD);
-      	}
-		d += 1;
-   	}
+			}
+			MPI_Bcast(S[row1], n, MPI_DOUBLE, row1 % threads, MPI_COMM_WORLD);
+		}
+	}
 
-   	double end = MPI_Wtime();
+   	//double total = MPI_Wtime() - start;
 
    	if (my_rank == 0) {
-		for(int i=0;i<n*n;i++)
-			printf("%lf ",matrix[i]);
-		printf("\n");
-		printf("mpi: %f s\n", end - start);
-   	}	
+		// timeFile = fopen("../util/time_4.txt", "a");
+	
+		// char* outL = "../output/output_L_";
+		char* outL = "output_L_";
+		save(outL, argv, L, R, n, true);
+		// char* outU = "../output/output_U_";
+		char* outU = "output_U_";
+		save(outU, argv, U, R, n, false);
+		// fprintf(timeFile, "%lf\n", total);
+
+	}
 	free(matrix);
    	MPI_Finalize();
 	

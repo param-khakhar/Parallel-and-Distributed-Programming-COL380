@@ -629,299 +629,6 @@ void sections(double** S, double const **A, double **L, double **U, int n, int t
 
 void parallel_for_and_sections(double** S, double const **A, double **L, double **U, int n, int t){
 
-	// int i, j, k;
-
-	// #pragma omp parallel for
-	// for (i = 0; i < n; i++) {
-	// 	U[i][i] = 1;
-	// }
-	// for(j = 0; j < n; ++j){
-	// 	#pragma omp parallel
-	// 	{	
-	// 		L[j][j] = A[j][j]-S[j][j];
-	// 		U[j][j] = (A[j][j]-S[j][j])/L[j][j];
-	// 		double val = L[j][j];
-	// 		#pragma omp for
-	// 		for(i = j+1; i < n; ++i){
-	// 			L[j][i] = A[i][j] - S[i][j];
-	// 			U[j][i] = (A[j][i] - S[j][i])/val;
-	// 		}
-	// 	}
-	
-	// if(t == 2){
-	// 		int fir = (j+n)/2;
-	// 		#pragma omp parallel sections
-	// 		{
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= j; row1 < fir; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= fir; row1 < n; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 		}
-	// 	}
-	// 	else if(t == 4){
-	// 		int fir = (3*j+n)/4, sec = (2*j+2*n)/4, thi = (j+3*n)/4;
-	// 		#pragma omp parallel sections
-	// 		{
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= j; row1 < fir; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= fir; row1 < sec; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= sec; row1 < thi; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= thi; row1 < n; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 		}
-	// 	}
-	// 	else if(t == 8){
-	// 		int fir = (7*j+n)/8, sec = (6*j+2*n)/8, thi = (5*j+3*n)/8;
-	// 		int four = (4*j + 4*n)/8, fif = (3*j + 5*n)/8, six = (2*j + 6*n)/8;
-	// 		int svn = (j + 7*n)/8;
-	// 		#pragma omp parallel sections
-	// 		{
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= j; row1 < fir; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= fir; row1 < sec; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= sec; row1 < thi; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= thi; row1 < four; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= four; row1 < fif; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= fif; row1 < six; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= six; row1 < svn; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= svn; row1 < n; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 		}
-
-	// 	}
-	// 	else{
-	// 		int fir = (15*j+n)/16, sec = (14*j+2*n)/16, thi = (13*j+3*n)/16;
-	// 		int four = (12*j + 4*n)/16, fif = (11*j + 5*n)/16, six = (10*j + 6*n)/16;
-	// 		int svn = (9*j + 7*n)/16, eight = (8*j + 8*n)/16, nine = (7*j + 9*n)/16;
-	// 		int ten = (6*j + 10*n)/16, eleven = (5*j + 11*n)/16, tweleve = (4*j + 12*n)/16;
-	// 		int thirteen = (3*j + 13*n)/16, fourteen = (2*j + 14*n)/16, fifteen = (j + 15*n)/16;
-
-	// 		#pragma omp parallel sections
-	// 		{
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= j; row1 < fir; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= fir; row1 < sec; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= sec; row1 < thi; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= thi; row1 < four; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= four; row1 < fif; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= fif; row1 < six; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= six; row1 < svn; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= svn; row1 < eight; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= eight; row1 < nine; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= nine; row1 < ten; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= ten; row1 < eleven; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= eleven; row1 < tweleve; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				 #pragma omp section
-	// 				{
-	// 					for(int row1= tweleve; row1 < thirteen; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				 #pragma omp section
-	// 				{
-	// 					for(int row1= thirteen; row1 < fourteen; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= fourteen; row1 < fifteen; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 				#pragma omp section
-	// 				{
-	// 					for(int row1= fifteen; row1 < n; ++row1){
-	// 						for(int row2 = j; row2 < n; ++row2){
-	// 							S[row1][row2] += L[j][row1]*U[j][row2];
-	// 						}
-	// 					}
-	// 				}
-	// 		}
-	// 	}
-	// }
-
 	int i, j, k;
 
 	#pragma omp parallel for
@@ -947,14 +654,313 @@ void parallel_for_and_sections(double** S, double const **A, double **L, double 
 				}
 			}
 		}
-		#pragma omp parallel for
-		for(int row1 = j; row1 < n; ++row1){
-			for(int row2 = j; row2 < n; ++row2){
-				S[row1][row2] += L[j][row1]*U[j][row2];
+	if(t == 2){
+			int fir = (j+n)/2;
+			#pragma omp parallel sections
+			{
+					#pragma omp section
+					{
+						for(int row1= j; row1 < fir; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= fir; row1 < n; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
 			}
 		}
+		else if(t == 4){
+			int fir = (3*j+n)/4, sec = (2*j+2*n)/4, thi = (j+3*n)/4;
+			#pragma omp parallel sections
+			{
+					#pragma omp section
+					{
+						for(int row1= j; row1 < fir; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= fir; row1 < sec; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= sec; row1 < thi; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= thi; row1 < n; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+			}
+		}
+		else if(t == 8){
+			int fir = (7*j+n)/8, sec = (6*j+2*n)/8, thi = (5*j+3*n)/8;
+			int four = (4*j + 4*n)/8, fif = (3*j + 5*n)/8, six = (2*j + 6*n)/8;
+			int svn = (j + 7*n)/8;
+			#pragma omp parallel sections
+			{
+					#pragma omp section
+					{
+						for(int row1= j; row1 < fir; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= fir; row1 < sec; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= sec; row1 < thi; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= thi; row1 < four; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= four; row1 < fif; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= fif; row1 < six; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= six; row1 < svn; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= svn; row1 < n; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+			}
 
+		}
+		else{
+			int fir = (15*j+n)/16, sec = (14*j+2*n)/16, thi = (13*j+3*n)/16;
+			int four = (12*j + 4*n)/16, fif = (11*j + 5*n)/16, six = (10*j + 6*n)/16;
+			int svn = (9*j + 7*n)/16, eight = (8*j + 8*n)/16, nine = (7*j + 9*n)/16;
+			int ten = (6*j + 10*n)/16, eleven = (5*j + 11*n)/16, tweleve = (4*j + 12*n)/16;
+			int thirteen = (3*j + 13*n)/16, fourteen = (2*j + 14*n)/16, fifteen = (j + 15*n)/16;
+
+			#pragma omp parallel sections
+			{
+					#pragma omp section
+					{
+						for(int row1= j; row1 < fir; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= fir; row1 < sec; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= sec; row1 < thi; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= thi; row1 < four; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= four; row1 < fif; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= fif; row1 < six; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= six; row1 < svn; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= svn; row1 < eight; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= eight; row1 < nine; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= nine; row1 < ten; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= ten; row1 < eleven; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= eleven; row1 < tweleve; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					 #pragma omp section
+					{
+						for(int row1= tweleve; row1 < thirteen; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					 #pragma omp section
+					{
+						for(int row1= thirteen; row1 < fourteen; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= fourteen; row1 < fifteen; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+					#pragma omp section
+					{
+						for(int row1= fifteen; row1 < n; ++row1){
+							for(int row2 = j; row2 < n; ++row2){
+								S[row1][row2] += L[j][row1]*U[j][row2];
+							}
+						}
+					}
+			}
+		}
 	}
+
+	// int i, j, k;
+
+	// #pragma omp parallel for
+	// for (i = 0; i < n; i++) {
+	// 	U[i][i] = 1;
+	// }
+	// for(j = 0; j < n; ++j){
+	// 	L[j][j] = A[j][j]-S[j][j];
+	// 	U[j][j] = (A[j][j]-S[j][j])/L[j][j];
+	// 	double val = L[j][j];
+	// 	#pragma omp parallel sections
+	// 	{
+	// 		#pragma omp section
+	// 		{
+	// 			for(int i = j+1; i < n; ++i){
+	// 				L[j][i] = A[i][j] - S[i][j];
+	// 			}
+	// 		}
+	// 		#pragma omp section
+	// 		{
+	// 			for(int i = j; i < n; ++i){
+	// 				U[j][i] = (A[j][i] - S[j][i])/val;
+	// 			}
+	// 		}
+	// 	}
+	// 	#pragma omp parallel for
+	// 	for(int row1 = j; row1 < n; ++row1){
+	// 		for(int row2 = j; row2 < n; ++row2){
+	// 			S[row1][row2] += L[j][row1]*U[j][row2];
+	// 		}
+	// 	}
+
+	// }
 
 
 }
@@ -1035,15 +1041,15 @@ int main(int argc, char* argv[]){
 
 		case 0:
 			// printf("Serial\n");
-			timeFile = fopen("../util/time_0.txt", "a");
-			//crout3(S, (const double**)matrix, L, U, n);
-			crout4(S, matrix, L, U, n);
-			for(int i=0;i<n;i++){
-				for(int j=0;j<n;j++){
-					printf("%lf ",matrix[i][j]);
-				}
-				printf("\n");
-			}
+			// timeFile = fopen("../util/time_0.txt", "a");
+			crout3(S, (const double**)matrix, L, U, n);
+//			crout4(S, matrix, L, U, n);
+			// for(int i=0;i<n;i++){
+			// 	for(int j=0;j<n;j++){
+			// 		printf("%lf ",matrix[i][j]);
+			// 	}
+			// 	printf("\n");
+			// }
 			// for(int i=0;i<n;i++){
 			// 	for(int j=0;j<n;j++){
 			// 		printf("%lf ",L[i][j]);
@@ -1054,37 +1060,39 @@ int main(int argc, char* argv[]){
 
 		case 1:
 			// printf("Parallel-For\n");
-			timeFile = fopen("../util/time_1.txt", "a");
+			// timeFile = fopen("../util/time_1.txt", "a");
 			parallel_for(S, (const double**)matrix, L, U, n);
 		break;
 
 		case 2:
 			// printf("Sections\n");
-			timeFile = fopen("../util/time_2.txt", "a");
+			// timeFile = fopen("../util/time_2.txt", "a");
 			sections(S, (const double**)matrix, L, U, n, threads);
 			//printf("here\n");
 		break;
 
 		case 3:
 			// printf("Parallel-For-And-Sections\n");
-			timeFile = fopen("../util/time_3.txt", "a");
+			// timeFile = fopen("../util/time_3.txt", "a");
 			parallel_for_and_sections(S, (const double**)matrix, L, U, n, threads);
 		break;
 
 		case 4:
 			//Redundant
 			// printf("Distributed\n");
-			timeFile = fopen("../util/time_4.txt", "a");
-			distributed();
+			// timeFile = fopen("../util/time_4.txt", "a");
+			// distributed();
 		break;
 	}
-	double total = omp_get_wtime() - start;
-	char* outL = "../output/output_L_";
+	//double total = omp_get_wtime() - start;
+	// char* outL = "../output/output_L_";
+	char* outL = "output_L_";	
 	save(outL, argv, L, R, n, true);
-	char* outU = "../output/output_U_";
+	//char* outU = "../output/output_U_";
+	char* outU = "output_U_";
 	// save(outU, argv, U, n, C, true);
 	save(outU, argv, U, R, n, false);
 
-	fprintf(timeFile, "%lf\n", total);
+	//fprintf(timeFile, "%lf\n", total);
 	return 0;
 }
